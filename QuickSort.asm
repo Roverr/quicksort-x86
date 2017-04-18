@@ -4,7 +4,7 @@ INCLUDE Irvine32.inc
 ; Quicksorting decimal numbers
 
 .data
-intarray		SDWORD 1,-1,-3,1,2
+intarray		SDWORD 1,-1,-3,1,2,7
 prompt		BYTE " copied: ",0
 
 
@@ -14,37 +14,63 @@ copy    SDWORD lengthof intarray dup (?)
 
 
 .code
-_copyArray:
-	mov		edi,OFFSET intarray		
-	mov		esi,OFFSET copy
+;copyArray is a function for copying the original intarray into a copy array
+;this way the original array won't be modified during quicksort
+copyArray:
+	mov		EDI,OFFSET intarray		
+	mov		ESI,OFFSET copy
 
-	mov		ecx,LENGTHOF intarray		
-	xor		eax,eax						
+	mov		ECX,LENGTHOF intarray		
+	xor		EAX,EAX						
 L2:									
-	mov		eax, [edi]				
+	mov		EAX, [EDI]				
 	call		WriteInt
-	mov		edx,OFFSET prompt
+	mov		EDX,OFFSET prompt
      call		WriteString
-	mov		[esi], eax
-	mov		eax, [esi]
+	mov		[ESI], EAX
+	mov		EAX, [ESI]
 	call		WriteInt
 	call		Crlf
-	add		esi, TYPE SDWORD
-	add		edi, TYPE SDWORD   		
+	add		ESI, TYPE SDWORD
+	add		EDI, TYPE SDWORD   		
 	loop		L2	
 	ret
 
-_quicksort:
-	mov		ecx,LENGTHOF copy
-	mov		esi,OFFSET copy
-	xor		eax, eax
-	add		esi, TYPE SDWORD
-	mov		eax, [esi]
-	call		WriteString
+
+;getLastElement is a function for getting the current last element of copy array
+;into EBX
+getLastElement:
+	push		ESI
+	push		EAX
+	push		ECX
+	mov		ESI,OFFSET copy
+	mov		EAX,LENGTHOF copy-1
+	mov		ECX, 4				;4 for multiply, because SDWORD is 4 bytes
+	mul		ECX
+	mov		ECX, EAX
+	mov		EBX, [ESI+ECX]			;EBX is going to be the last element of the array
+	pop		EAX
+	pop		ESI
+	pop		ECX
 	ret
 
+quicksort:
+	push		EBP
+	mov		EBP, ESP
+	push		EBX
+	push		ESI
+	push		EDI
+	push		EAX
+
+	mov		ESI,OFFSET copy		;ESI is the first element of the array
+	mov		EBX,LENGTHOF copy-1		;EBX will be the last index of the array, aka high index
+	xor		EAX,EAX				;EAX will be the first index of the array, aka low index
+	ret
+
+
 main proc
-	call		_copyarray
+	call		copyArray
+	call		quicksort
 	invoke	ExitProcess,0
 main endp
 end main
