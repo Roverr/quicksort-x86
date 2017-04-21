@@ -4,7 +4,7 @@ INCLUDE Irvine32.inc
 ;Quicksorting decimal numbers
 
 .data
-intarray		SDWORD 1,-1,-3,1,2,7
+intarray		SDWORD 1,-1,-3,1,2,7,4,-5,6,3
 copyText		BYTE " copied: ",0
 separator		BYTE " ",0
 
