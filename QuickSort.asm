@@ -1,40 +1,37 @@
 TITLE Quicksortx86
 INCLUDE Irvine32.inc
 
-;Quicksorting decimal numbers
+;Quicksorting decimal signed numbers
 
 .data
 intarray		SDWORD 1,-1,-3,1,2,7,4,-5,6,3
 copyText		BYTE " copied: ",0
 separator		BYTE " ",0
 
-
-
-       
 .data?
-copy    SDWORD lengthof intarray dup (?)
+copy			SDWORD lengthof intarray dup (?)
 
 
 .code
 ;copyArray is a function for copying the original intarray into a copy array
 ;this way the original array won't be modified during quicksort
 copyArray:
-	mov		EDI, OFFSET intarray		
+	mov		EDI, OFFSET intarray
 	mov		ESI, OFFSET copy
 
-	mov		ECX, LENGTHOF intarray							
-L2:									
-	mov		EAX, [EDI]				
+	mov		ECX, LENGTHOF intarray
+L2:
+	mov		EAX, [EDI]
 	call		WriteInt
 	mov		EDX, OFFSET copyText
-     call		WriteString
+	call		WriteString
 	mov		[ESI], EAX
 	mov		EAX, [ESI]
 	call		WriteInt
 	call		Crlf
 	add		ESI, TYPE SDWORD
-	add		EDI, TYPE SDWORD   		
-	loop		L2	
+	add		EDI, TYPE SDWORD
+	loop		L2
 	ret
 ;----------------------------------------------------------------------------------------
 
@@ -78,15 +75,14 @@ quicksort:
 	xor		EAX,EAX				;EAX will be the first index of the array, aka low index, starting at 0
 	call		recursive				;Call recursive function to continue sorting
 	pop		EDI
-     pop		ESI
-     pop		EBX
-     pop		EBP
+	pop		ESI
+	pop		EBX
+	pop		EBP
 	ret
 
 ;recursive is the recursive sorting part of the quicksorting algorithm
 recursive:
-	;if i is greater or equal than j, jmp to over
-	cmp		EAX,EBX
+	cmp		EAX,EBX				;If i is greater or equal than j, jmp to over
 	jge		over
 	
 	call		printCopy
@@ -99,86 +95,67 @@ recursive:
 
 mainLoop:
 iLoop:
-	;i++
-     add		EAX, TYPE SDWORD
-            
-     ;If i >= j, exit this loop
-     cmp		EAX, EBX
-     jge		iLoopEnd
-            
-     ;If array[i] >= pivot, exit this loop
-     cmp		[ESI+EAX], EDI
-     jge		iLoopEnd
-            
-     ;Go back to the top of this loop
-     jmp		iLoop
+	add		EAX, TYPE SDWORD		;i++
+
+	cmp		EAX, EBX				;Compare, if i(EAX) is greater or equal than j(EBX), exit loop
+	jge		iLoopEnd
+
+	cmp		[ESI+EAX], EDI			;If array[i] is greater or equal than pivot, exit loop
+	jge		iLoopEnd
+
+	jmp		iLoop				;Jump back to the top of iLoop
 
 iLoopEnd:
 jLoop:
-	;j--
-	sub		EBX, TYPE SDWORD
+	sub		EBX, TYPE SDWORD		;Decrease j value by 4 bytes
 
-	;If array[j] <= pivot, exit this loop
-     cmp		[ESI+EBX], EDI
-     jle		jLoopEnd
-            
-     ;Go back to the top of this loop
-     jmp		jLoop
+	cmp		[ESI+EBX], EDI			;If array[j] is less or equal than pivot, exit this loop
+	jle		jLoopEnd
+
+	jmp		jLoop				;Get back to the top of jLoop
 
 jLoopEnd:
-	;If i >= j, then don't swap and end the main loop
-     cmp		EAX, EBX
-     jge		mainLoopEnd
-        
-     ;Else, swap array[i] with array [j]
-     push		[ESI+EAX]
-     push		[ESI+EBX]
-        
-     pop		[ESI+EAX]
-     pop		[ESI+EBX]
-        
-     ;Go back to the top of the main loop
-     jmp		mainLoop
+	cmp		EAX, EBX				;If i >= j end the main loop
+	jge		mainLoopEnd
+
+	push		[ESI+EAX]				;Else, swap array[i] with array[j] by pushing these values and popping them
+	push		[ESI+EBX]
+
+	pop		[ESI+EAX]
+	pop		[ESI+EBX]
+
+	jmp		mainLoop				;Get back to the main loop to continue sorting
 
 mainLoopEnd:
-	;Restore the high index into EDI
-	pop		EDI
-    
-	;Restore the low index into ECX
-	pop		ECX
-    
-	;If low index == j, don't swap
-	cmp		ECX, EBX
+	pop		EDI					;Restore the high index into EDI
+
+	pop		ECX					;Restore the low index into ECX
+
+	cmp		ECX, EBX				;If the saved low index == j, don't swap the values
 	je		swapEnd
-    
-	;Else, swap array[low index] with array[j]
-	push		[ESI+ECX]
+
+	push		[ESI+ECX]				;Else, swap array[low index] with array[j] by pushing and popping these values
 	push		[ESI+EBX]
-        
+
 	pop		[ESI+ECX]
 	pop		[ESI+EBX]
 
-swapEnd:     
-	;Setting EAX back to the low index
-	mov		EAX, ECX 
+swapEnd:
+	mov		EAX, ECX				;Setting EAX back to the low index
 
-	push		EDI    ;Saving the high Index
-	push		EBX    ;Saving j
-    
-	sub		EBX, TYPE SDWORD  ;Setting EBX to j-1
+	push		EDI					;Saving the high Index
+	push		EBX					;Saving j
+
+	sub		EBX, TYPE SDWORD		;Setting EBX to j-1
 	
-	;QuickSort(array, low index, j-1)
-	call		recursive
-    
-	;Restore 'j' into EAX
-	pop		EAX
-	add		EAX, 4  ;setting EAX to j+1
-    
-	;Restore the high index into EBX
-	pop		EBX
-    
-	;QuickSort(array, j+1, high index)
-	call		recursive
+	call		recursive				;Calling QuickSort(array, low index, j-1)
+
+	pop		EAX					;Restore 'j' into EAX
+	add		EAX, 4				;Setting EAX to j+1
+
+	pop		EBX					;Restore the high index into EBX
+
+	call		recursive				;Calling QuickSort(array, j+1, high index)
 over:
 	ret
 ;----------------------------------------------------------------------------------------
