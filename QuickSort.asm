@@ -16,42 +16,43 @@ copy			SDWORD lengthof intarray dup (?)
 ;copyArray is a function for copying the original intarray into a copy array
 ;this way the original array won't be modified during quicksort
 copyArray:
-	mov		EDI, OFFSET intarray
-	mov		ESI, OFFSET copy
+	mov		EDI, OFFSET intarray	;Set EDI to the first element of input array
+	mov		ESI, OFFSET copy		;Set ESI to the first element of copy array
 
-	mov		ECX, LENGTHOF intarray
+	mov		ECX, LENGTHOF intarray	;Set ECX to the count of the input array
 L2:
-	mov		EAX, [EDI]
-	call		WriteInt
-	mov		EDX, OFFSET copyText
-	call		WriteString
-	mov		[ESI], EAX
-	mov		EAX, [ESI]
-	call		WriteInt
-	call		Crlf
-	add		ESI, TYPE SDWORD
+	mov		EAX, [EDI]			;Set EAX to the current element of input array
+	call		WriteInt				;Print out
+	mov		EDX, OFFSET copyText	;Set EDX to the start of string copyText
+	call		WriteString			;Print out
+	mov		[ESI], EAX			;Move EAX to the current element of copy array
+	mov		EAX, [ESI]			;Swap it back for making sure
+	call		WriteInt				;Print out again
+	call		Crlf					;Line break
+	add		ESI, TYPE SDWORD		;Increment the iterators
 	add		EDI, TYPE SDWORD
-	loop		L2
+	loop		L2					;Loop until last element of input array
 	ret
 ;----------------------------------------------------------------------------------------
 
 
 ;printCopy is a function for printing out every number found in copy 4byte elements array
 printCopy:
-	push		EDI
+	push		EDI					;Save registers for restore
 	push		ECX
 	push		EAX
 	push		EDX
-	mov		EDI, OFFSET copy
-	mov		ECX, LENGTHOF copy
+
+	mov		EDI, OFFSET copy		;Set EDI to first element of copy array
+	mov		ECX, LENGTHOF copy		;Set ECX to count of copy array
 printLoop:
-	mov		EAX, [EDI]
-	call		WriteInt
-	mov		EDX, OFFSET separator
-	call		WriteString
-	add		EDI, TYPE SDWORD
-	loop		printLoop
-	pop		EDX
+	mov		EAX, [EDI]			;Set EAX to the first element of copy array
+	call		WriteInt				;Print out EAX
+	mov		EDX, OFFSET separator	;Set EDX to the start of separator string
+	call		WriteString			;Print out EDX
+	add		EDI, TYPE SDWORD		;Add 4 bytes to 
+	loop		printLoop				;Loop until the end of copy array
+	pop		EDX					;Restore registers
 	pop		EAX
 	pop		ECX
 	pop		EDI
@@ -61,7 +62,7 @@ printLoop:
 
 ;quicksort is a main function of the quicksorting algorithm
 quicksort:
-	push		EBP
+	push		EBP					;Save registers for restore
 	mov		EBP, ESP
 	push		EBX
 	push		ESI
@@ -74,7 +75,7 @@ quicksort:
 	mov		EBX, EAX				;Multiply's result will be stored in EAX, so we have to move it into EBX
 	xor		EAX,EAX				;EAX will be the first index of the array, aka low index, starting at 0
 	call		recursive				;Call recursive function to continue sorting
-	pop		EDI
+	pop		EDI					;Restore registers
 	pop		ESI
 	pop		EBX
 	pop		EBP
@@ -85,8 +86,10 @@ recursive:
 	cmp		EAX,EBX				;If i is greater or equal than j, jmp to over
 	jge		over
 	
-	call		printCopy
-	call		Crlf
+	;Debug for sorting
+	;call		printCopy
+	;call		Crlf
+
 	push		EAX					;Saving EAX for low index, EAX=i
 	push		EBX					;Saving EBX for high index, EBX=j
 	add		EBX, TYPE SDWORD		;Adding 4 bytes to EBX, j+1
@@ -162,9 +165,9 @@ over:
 
 
 main proc
-	call		copyArray
-	call		quicksort
-	call		printCopy
+	call		copyArray				;First copy the input array for making sure we don't lose any data
+	call		quicksort				;Quicksorting the copied array
+	call		printCopy				;Printing out the quicksorted array
 	invoke	ExitProcess,0
 main endp
 end main
